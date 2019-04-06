@@ -1,4 +1,8 @@
-This engine allows the user to input thousands of objects and watch an n-body physics display occur.
+This engine allows the user to input thousands of objects and watch an n-body physics display occur. If objects collide, those objects will "merge".
+
+The number at the top right represents the number of objects remaining in the simulation.
+
+The camera "locks-on" to the largest mass object and follows it around, moving to any larger object as objects merge.
 
 It relies on only a few functions and objects to do all the work, so hopefully the code is quite easy to understand and follow.
 
