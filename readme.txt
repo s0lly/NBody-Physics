@@ -1,6 +1,8 @@
 This engine allows the user to input thousands of objects and watch an n-body physics display occur.
 
-It relies on only a few functions and objects to do all the work, so hopefully is quite easy to understand and follow.
+It relies on only a few functions and objects to do all the work, so hopefully the code is quite easy to understand and follow.
+
+The camera can be zoomed in and out using 'A' and 'Z' respectively.
 
 Please let me know how I could improve this!
 
