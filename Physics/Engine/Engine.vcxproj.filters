@@ -66,9 +66,6 @@
     <ClInclude Include="WorldObject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Force.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DXErr.cpp">

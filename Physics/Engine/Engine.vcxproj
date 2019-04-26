@@ -141,7 +141,6 @@
     <ClInclude Include="Colors.h" />
     <ClInclude Include="COMInitializer.h" />
     <ClInclude Include="DXErr.h" />
-    <ClInclude Include="Force.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="Graphics.h" />
     <ClInclude Include="Keyboard.h" />

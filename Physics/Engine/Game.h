@@ -57,10 +57,34 @@ private:
 	/*  User Variables              */
 	/********************************/
 
-	std::vector<WorldObject> worldObjects;
+	std::chrono::system_clock::time_point start;
+	std::chrono::system_clock::time_point end;
+	float dt = 1.0f;
+
+	// Debug time info using OOP design:
+	// 3000 objects = 140ms
+	// 1500 objects = 33.3ms
+	// Just under 1000 objects = 16.66ms
+
+
+	// Redesign away from OOP and use vector math, excl. mt:
+	// 1500 objects = 20.0ms
+
+
+	// Re-incl. mt:
+	// 3000 objects = 18.0ms
+
 
 	Vec2 cameraLoc = Vec2(0.0f, 0.0f);
-	float cameraZoomOut = 6.0f;
+	float cameraZoomOut = 12.0f;
 
-	int numObjectsToAdd = 1500; // 5000
+	int numObjects = 2500;
+
+	WorldObject *worldObjects;
+
+	
+
+
+	int currentAssignedObjects = 0;
+
 };
