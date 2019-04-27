@@ -37,7 +37,11 @@ Game::Game(MainWindow& wnd)
 	// Initialise objects
 
 
-	worldObjects = new WorldObject[numObjects];
+	worldObjects.loc = new Vec2[numObjects];
+	worldObjects.velocity = new Vec2[numObjects];
+	worldObjects.mass = new float[numObjects];
+	worldObjects.radius = new float[numObjects];
+	worldObjects.color = new Color[numObjects];
 	//renderComponents = new RenderComponent[numObjects];
 
 
@@ -62,7 +66,13 @@ Game::Game(MainWindow& wnd)
 
 		startForce = Vec2();
 
-		worldObjects[currentAssignedObjects] = { Vec2(xRand, yRand), startForce, massRand, radiusRand, Color(rRand, gRand, bRand) };
+		worldObjects.loc[currentAssignedObjects] = Vec2(xRand, yRand);
+		worldObjects.velocity[currentAssignedObjects] = startForce;
+		worldObjects.mass[currentAssignedObjects] = massRand;
+		worldObjects.radius[currentAssignedObjects] = radiusRand;
+		worldObjects.color[currentAssignedObjects] = Color(rRand, gRand, bRand);
+
+
 
 		currentAssignedObjects++;
 		//renderComponents[currentAssignedObjects] = { radiusRand,  Color(rRand, gRand, bRand) };
@@ -124,7 +134,7 @@ void Game::ProcessInput()
 
 void Game::UpdateModel()
 {
-	int numThreads = 20;
+	int numThreads = 50;
 	int threadSize = currentAssignedObjects / numThreads + 1;
 	auto worldObjectsPtr = &worldObjects;
 	auto currentAssignedObjectsPtr = &currentAssignedObjects;
@@ -142,7 +152,8 @@ void Game::UpdateModel()
 				{
 					if (i != j)
 					{
-						ApplyGravityToFirst((*worldObjectsPtr)[i], (*worldObjectsPtr)[j], (*dtPtr));
+						ApplyGravityToFirst(worldObjectsPtr->loc[i], worldObjectsPtr->mass[i],
+							worldObjectsPtr->velocity[i], worldObjectsPtr->loc[j], worldObjectsPtr->mass[j], (*dtPtr));
 					}
 				}
 			}
@@ -154,7 +165,7 @@ void Game::UpdateModel()
 	// Update all objects locations based on all active forces
 	for (int i = 0; i < currentAssignedObjects; i++)
 	{
-		worldObjects[i].loc = worldObjects[i].loc + worldObjects[i].velocity * dt;
+		worldObjectsPtr->loc[i] = worldObjectsPtr->loc[i] + worldObjectsPtr->velocity[i] * dt;
 	}
 
 	// Merge objects that have collided
@@ -206,9 +217,9 @@ void Game::UpdateModel()
 	
 	for (int i = 0; i < currentAssignedObjects; i++)
 	{
-		alignedMassXLoc += worldObjects[i].loc.x * worldObjects[i].mass;
-		alignedMassYLoc += worldObjects[i].loc.y * worldObjects[i].mass;
-		totalMass += worldObjects[i].mass;
+		alignedMassXLoc += worldObjectsPtr->loc[i].x * worldObjectsPtr->mass[i];
+		alignedMassYLoc += worldObjectsPtr->loc[i].y * worldObjectsPtr->mass[i];
+		totalMass += worldObjectsPtr->mass[i];
 	}
 	alignedMassXLoc /= totalMass;
 	alignedMassYLoc /= totalMass;
@@ -226,7 +237,7 @@ void Game::ComposeFrame()
 	// Draw all objects
 	for (int i = 0; i < currentAssignedObjects; i++)
 	{
-		gfx.DrawCircle(Vec2((worldObjects[i].loc.x - cameraLoc.x) / (cameraZoomOut) + (float)(gfx.ScreenWidth / 2), -(worldObjects[i].loc.y - cameraLoc.y) / (cameraZoomOut) + (float)(gfx.ScreenHeight / 2)), worldObjects[i].radius / (cameraZoomOut), worldObjects[i].color);
+		gfx.DrawCircle(Vec2((worldObjects.loc[i].x - cameraLoc.x) / (cameraZoomOut) + (float)(gfx.ScreenWidth / 2), -(worldObjects.loc[i].y - cameraLoc.y) / (cameraZoomOut) + (float)(gfx.ScreenHeight / 2)), worldObjects.radius[i] / (cameraZoomOut), worldObjects.color[i]);
 	}
 
 	// Display number of active objects and MSEC PER FRAME
