@@ -276,7 +276,7 @@ void Game::UpdateModel()
 
 	
 
-	int numThreads = 50;
+	int numThreads = 8;
 	int threadSize = currentAssignedObjects / numThreads + 1;
 	auto worldObjectsPtr = &worldObjects;
 	auto numPlanesPtr = &numPlanes;

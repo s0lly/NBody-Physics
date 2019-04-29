@@ -81,7 +81,7 @@ private:
 
 
 	Vec2 cameraLoc = Vec2(0.0f, 0.0f);
-	float cameraZoomOut = 72.0f;
+	float cameraZoomOut = 96.0f;
 
 	WorldObjects worldObjects;
 
