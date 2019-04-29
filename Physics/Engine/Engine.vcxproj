@@ -150,6 +150,7 @@
     <ClInclude Include="RetroContent.h" />
     <ClInclude Include="Sound.h" />
     <ClInclude Include="SoundEffect.h" />
+    <ClInclude Include="Tree.h" />
     <ClInclude Include="Vec2.h" />
     <ClInclude Include="WorldObject.h" />
   </ItemGroup>

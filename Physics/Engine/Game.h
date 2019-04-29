@@ -33,6 +33,7 @@
 #include "Graphics.h"
 #include "WorldObject.h"
 #include "RetroContent.h"
+#include "Tree.h"
 #include <string>
 #include <thread>
 
@@ -61,6 +62,10 @@ private:
 	std::chrono::system_clock::time_point end;
 	float dt = 1.0f;
 
+	std::chrono::system_clock::time_point optimiseStart;
+	std::chrono::system_clock::time_point optimiseEnd;
+	float optimiseDt = 1.0f;
+
 	// Debug time info using OOP design:
 	// 3000 objects = 140ms
 	// 1500 objects = 33.3ms
@@ -78,13 +83,12 @@ private:
 	Vec2 cameraLoc = Vec2(0.0f, 0.0f);
 	float cameraZoomOut = 36.0f;
 
-	int numObjects = 3000;
-
 	WorldObjects worldObjects;
 
-	
-
-
+	int numObjects = 1000;
 	int currentAssignedObjects = 0;
+
+	Tree tree;
+
 
 };

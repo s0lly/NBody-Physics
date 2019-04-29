@@ -1,10 +1,10 @@
 
-/******************************************************************************************
-*	Game code and amendments by s0lly													   *
-*	https://www.youtube.com/channel/UCOyCXEB8NTx3Xjm8UptwsIg							   *
+/*******************************************************************************************
+*	Code and amendments by s0lly														   *
+*	https://www.youtube.com/c/s0lly							                               *
 *	https://s0lly.itch.io/																   *
 *	https://www.instagram.com/s0lly.gaming/												   *
-******************************************************************************************/
+********************************************************************************************/
 
 #pragma once
 
@@ -18,6 +18,8 @@ struct WorldObjects
 	float *mass;
 	float *radius;
 	Color *color;
+	int *nodeID;
+	int *calcsCompleted;
 };
 
 
@@ -39,48 +41,43 @@ ApplyForce(Vec2 &velocity, float &mass, Vec2 in_force, float dt)
 }
 
 
-//static void
-//ApplyGravityToBoth(WorldObject &first, WorldObject &second, float dt)
-//{
-//	// Ensures that infinity speed is not possible
-//	float minRadiusSqrdAllowed = 0.01f;
-//	
-//	Vec2 vectorFromFirstToSecond = second.loc - first.loc;
-//
-//	float radiusSqrd = GetVec2Magnitude(vectorFromFirstToSecond);
-//	radiusSqrd = radiusSqrd < minRadiusSqrdAllowed ? minRadiusSqrdAllowed : radiusSqrd;
-//
-//	float radius = std::sqrt(radiusSqrd);
-//
-//	float gravityMagnitude = 1.0f * (GRAV_CONST * first.mass * second.mass) / radiusSqrd; // The constant can be changed to effect all objects masses
-//
-//	Vec2 gravOnFirstToSecond = GetNormalizedVec2(vectorFromFirstToSecond) * gravityMagnitude;
-//
-//	ApplyForce(first, gravOnFirstToSecond, dt);
-//	ApplyForce(second, Vec2() - gravOnFirstToSecond, dt);
-//}
-
-
-static void
-ApplyGravityToFirst(Vec2 &locFirst, float &massFirst, Vec2 &velocityFirst,
-					Vec2 &locSecond, float &massSecond , float dt)
+static bool
+ApplyGravityToFirst(Vec2 *locFirst, float *massFirst, Vec2 *velocityFirst, int *calcsCompletedFirst,
+					Vec2 locSecond, float massSecond, float dt, bool isNode)
 {
 	// Ensures that infinity speed is not possible
-	float minRadiusSqrdAllowed = 0.00001f;
+	float minRadiusSqrdAllowed = 1.0f;
 
-	Vec2 vectorFromFirstToSecond = locSecond - locFirst;
+	Vec2 vectorFromFirstToSecond = locSecond - *locFirst;
 
 	float radiusSqrd = GetVec2Magnitude(vectorFromFirstToSecond);
 	radiusSqrd = radiusSqrd < minRadiusSqrdAllowed ? minRadiusSqrdAllowed : radiusSqrd;
 
-	float radius = std::sqrt(radiusSqrd);
-
-	float gravityMagnitude = 10.0f * (GRAV_CONST * massFirst * massSecond) / radiusSqrd; // The constant can be changed to effect all objects masses
+	float gravityMagnitude = 10.0f * (GRAV_CONST * (*massFirst) * massSecond) / radiusSqrd; // The constant can be changed to effect all objects masses
 
 	Vec2 gravOnFirstToSecond = GetNormalizedVec2(vectorFromFirstToSecond) * gravityMagnitude;
 
-	ApplyForce(velocityFirst, massFirst, gravOnFirstToSecond, dt);
-
+	if (isNode)
+	{
+		if (gravityMagnitude < NODE_GRAV_THRESHOLD)
+		{
+			ApplyForce((*velocityFirst), (*massFirst), gravOnFirstToSecond, dt);
+			(*calcsCompletedFirst)++;
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+		
+	}
+	else
+	{
+		ApplyForce((*velocityFirst), (*massFirst), gravOnFirstToSecond, dt);
+		(*calcsCompletedFirst)++;
+		return true;
+	}
+	
 }
 
 

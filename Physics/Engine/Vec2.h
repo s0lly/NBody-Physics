@@ -1,10 +1,10 @@
 
-/******************************************************************************************
-*	Game code and amendments by s0lly													   *
-*	https://www.youtube.com/channel/UCOyCXEB8NTx3Xjm8UptwsIg							   *
+/*******************************************************************************************
+*	Code and amendments by s0lly														   *
+*	https://www.youtube.com/c/s0lly							                               *
 *	https://s0lly.itch.io/																   *
 *	https://www.instagram.com/s0lly.gaming/												   *
-******************************************************************************************/
+********************************************************************************************/
 
 #pragma once
 
@@ -15,6 +15,13 @@
 #define PI 3.1415926f
 
 #define GRAV_CONST 0.004302f
+
+#define NODE_GRAV_THRESHOLD 100.0f
+
+
+static int numCalcs = 0;
+
+
 
 
 struct Vec2
