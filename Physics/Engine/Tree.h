@@ -70,11 +70,18 @@ RecursivePlaneQuadrantCheckAndApplyGravity(WorldObjects *worldObjects, int maxWo
 					{
 						for (int i = 0; i < maxWorldObjects; i++)
 						{
-							if (worldObjects->nodeID[worldObjNum] == worldObjects->nodeID[i] && worldObjNum != i)
+							if (worldObjects->nodeID[worldObjNum] == nodeLookup && worldObjNum != i)
 							{
 								ApplyGravityToFirst(&worldObjects->loc[worldObjNum], &worldObjects->mass[worldObjNum], &worldObjects->velocity[worldObjNum], &worldObjects->calcsCompleted[worldObjNum],
-									worldObjects->loc[i], worldObjects->mass[i], dt, !atLowestPlaneLevel);
+									worldObjects->loc[i], worldObjects->mass[i], dt, false);
 							}
+							
+							
+							// TODO: check below must be true - test!
+							//
+							//
+							//
+							//
 						}
 					}
 					else
@@ -86,10 +93,25 @@ RecursivePlaneQuadrantCheckAndApplyGravity(WorldObjects *worldObjects, int maxWo
 				else
 				{
 					if (!ApplyGravityToFirst(&worldObjects->loc[worldObjNum], &worldObjects->mass[worldObjNum], &worldObjects->velocity[worldObjNum], &worldObjects->calcsCompleted[worldObjNum],
-						nodeAveLocs[nodeLookup], nodeTotalMasses[nodeLookup], dt, !atLowestPlaneLevel))
+						nodeAveLocs[nodeLookup], nodeTotalMasses[nodeLookup], dt, true))
 					{
-						RecursivePlaneQuadrantCheckAndApplyGravity(worldObjects, maxWorldObjects, worldObjNum, maxPlanes, priorPlane - 1,
-							nodeAveLocs, nodeTotalMasses, x, y, dt);
+						if (!atLowestPlaneLevel)
+						{
+							RecursivePlaneQuadrantCheckAndApplyGravity(worldObjects, maxWorldObjects, worldObjNum, maxPlanes, priorPlane - 1,
+								nodeAveLocs, nodeTotalMasses, x, y, dt);
+						}
+						else
+						{
+							// TODO: check no if statement required
+							for (int i = 0; i < maxWorldObjects; i++)
+							{
+								if (worldObjects->nodeID[worldObjNum] == nodeLookup)
+								{
+									ApplyGravityToFirst(&worldObjects->loc[worldObjNum], &worldObjects->mass[worldObjNum], &worldObjects->velocity[worldObjNum], &worldObjects->calcsCompleted[worldObjNum],
+										worldObjects->loc[i], worldObjects->mass[i], dt, false);
+								}
+							}
+						}
 					}
 				}
 			}

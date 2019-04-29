@@ -51,7 +51,7 @@ Game::Game(MainWindow& wnd)
 
 	for (int i = 0; i < numObjects; i++)
 	{
-		int sizeOfField = 20000;
+		int sizeOfField = 10000;
 
 		float xRand = (float)(std::rand() % sizeOfField) - (float)(sizeOfField / 2);
 		float yRand = (float)(std::rand() % sizeOfField) - (float)(sizeOfField / 2);
@@ -134,6 +134,8 @@ void Game::ProcessInput()
 
 void Game::UpdateModel()
 {
+	
+
 	// Worldspace is the highest level space (equivalent to maxPlane). Each space has 4 qaudrants.
 
 	tree.topLeft = Vec2();
@@ -161,14 +163,14 @@ void Game::UpdateModel()
 		numPlanes++;
 	}
 
-	lowestPowerOf4 *= 4;
-	numPlanes++;
-	lowestPowerOf4 *= 4;
-	numPlanes++;
-	lowestPowerOf4 *= 4;
-	numPlanes++;
-	lowestPowerOf4 *= 4;
-	numPlanes++;
+	//lowestPowerOf4 *= 4;
+	//numPlanes++;
+	//lowestPowerOf4 *= 4;
+	//numPlanes++;
+	//lowestPowerOf4 *= 4;
+	//numPlanes++;
+	//lowestPowerOf4 *= 4;
+	//numPlanes++;
 
 	int totalNodes = 0;
 
@@ -226,9 +228,7 @@ void Game::UpdateModel()
 		}
 	}
 
-	optimiseEnd = std::chrono::system_clock::now();
-	std::chrono::duration<float> optimisedElapsedTime = optimiseEnd - optimiseStart;
-	optimiseDt = optimisedElapsedTime.count(); //dt = 1.0f;//
+	
 	
 
 	// We now have a pyramid of nodes
@@ -254,12 +254,13 @@ void Game::UpdateModel()
 
 	// we will want to check the topmost quadrant first
 
+	optimiseStart = std::chrono::system_clock::now(); // 35ms
 	
 	int currentPlane = numPlanes - 1;
 
 	numCalcs = 0;
 
-	optimiseStart = std::chrono::system_clock::now(); // 35ms
+	
 
 	int numThreads = 50;
 	int threadSize = currentAssignedObjects / numThreads + 1;
@@ -279,12 +280,21 @@ void Game::UpdateModel()
 				RecursivePlaneQuadrantCheckAndApplyGravity(worldObjectsPtr, (*currentAssignedObjectsPtr), i, numPlanes, numPlanes - 1,
 					nodeAveLoc, nodeTotalMass, 0, 0, (*dtPtr));
 
-				numCalcs += worldObjectsPtr->calcsCompleted[i];
+				
 			}
 		}));
 	}
 	std::for_each(threadList.begin(), threadList.end(), std::mem_fn(&std::thread::join));
 
+
+	for (int i = 0; i < currentAssignedObjects; i++)
+	{
+		numCalcs += worldObjectsPtr->calcsCompleted[i];
+	}
+
+	optimiseEnd = std::chrono::system_clock::now();
+	std::chrono::duration<float> optimisedElapsedTime = optimiseEnd - optimiseStart;
+	optimiseDt = optimisedElapsedTime.count(); //dt = 1.0f;//
 
 	// unload heap allocations
 
@@ -386,9 +396,9 @@ void Game::ComposeFrame()
 
 	// Display number of active objects and MSEC PER FRAME, with other info. as needed
 
-	RetroContent::DrawString(gfx, "NUM OBJ: " + std::to_string(currentAssignedObjects) , Vec2(150.0f, 20.0f), 3, Colors::Red);
-	RetroContent::DrawString(gfx, "NUM OPT: " + std::to_string(100 - (int)(numCalcs * 100) / (currentAssignedObjects * currentAssignedObjects)), Vec2(150.0f, 60.0f), 3, Colors::Red);
-	RetroContent::DrawString(gfx, "TOTAL MSEC PER FRAME: " + std::to_string(int(dt * 1000.0f)), Vec2(800.0f, 20.0f), 3, Colors::Yellow);
-	RetroContent::DrawString(gfx, "CHECK MSEC PER FRAME: " + std::to_string(int(optimiseDt * 1000.0f)), Vec2(800.0f, 80.0f), 3, Colors::Yellow);
+	RetroContent::DrawString(gfx, "NUMBER OF OBJECTS: " + std::to_string(currentAssignedObjects) , Vec2(200.0f, 20.0f), 2, Colors::Red);
+	RetroContent::DrawString(gfx, "PERCENT OPTIMISED: " + std::to_string(100 - (numCalcs * 100) / (currentAssignedObjects * (currentAssignedObjects - 1))), Vec2(200.0f, 60.0f), 2, Colors::Red); // (int)(numCalcs * 100) / (currentAssignedObjects * (currentAssignedObjects - 1))
+	RetroContent::DrawString(gfx, "TOTAL MSEC PER FRAME: " + std::to_string(int(dt * 1000.0f)), Vec2(800.0f, 20.0f), 2, Colors::Yellow);
+	RetroContent::DrawString(gfx, "CHECK MSEC PER FRAME: " + std::to_string(int(optimiseDt * 1000.0f)), Vec2(800.0f, 80.0f), 2, Colors::Yellow);
 }
 
