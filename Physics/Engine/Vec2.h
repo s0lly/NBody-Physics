@@ -16,7 +16,7 @@
 
 #define GRAV_CONST 0.004302f
 
-#define NODE_GRAV_THRESHOLD 0.0f
+#define NODE_GRAV_THRESHOLD 1000000.0f
 
 
 static int numCalcs = 0;
