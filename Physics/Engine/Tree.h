@@ -88,8 +88,11 @@ RecursivePlaneQuadrantCheckAndApplyGravity(WorldObjects *worldObjects, int maxWo
 						for (int t = 0; t < nodeObjectsContained[nodeLookup * (maxWorldObjects + 1)]; t++)
 						{
 							int targetWorldObject = nodeObjectsContained[nodeLookup * (maxWorldObjects + 1) + t + 1];
-							ApplyGravityToFirst(&worldObjects->loc[worldObjNum], &worldObjects->mass[worldObjNum], &worldObjects->velocity[worldObjNum], &worldObjects->calcsCompleted[worldObjNum],
-								worldObjects->loc[targetWorldObject], worldObjects->mass[targetWorldObject], dt, false);
+							if (worldObjNum != targetWorldObject)
+							{
+								ApplyGravityToFirst(&worldObjects->loc[worldObjNum], &worldObjects->mass[worldObjNum], &worldObjects->velocity[worldObjNum], &worldObjects->calcsCompleted[worldObjNum],
+									worldObjects->loc[targetWorldObject], worldObjects->mass[targetWorldObject], dt, false);
+							}
 						}
 					}
 					else

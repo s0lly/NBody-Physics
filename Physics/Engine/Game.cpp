@@ -63,8 +63,8 @@ Game::Game(MainWindow& wnd)
 		unsigned char gRand = (unsigned char)(std::rand() % 256);
 		unsigned char bRand = (unsigned char)(std::rand() % 256);
 
-		float magnitudeX = ((float)(std::rand() % 1001)) * 10.0f - 5000.0f;
-		float magnitudeY = ((float)(std::rand() % 1001)) * 10.0f - 5000.0f;
+		float magnitudeX = ((float)(std::rand() % 101)) * 1.0f - 50.0f;
+		float magnitudeY = ((float)(std::rand() % 101)) * 1.0f - 50.0f;
 
 		Vec2 startForce(magnitudeX, magnitudeY);
 
@@ -272,7 +272,7 @@ void Game::UpdateModel()
 	
 	int currentPlane = numPlanes - 1;
 
-	numCalcs = 0;
+	numCalcs = 0.0f;
 
 	
 
@@ -306,7 +306,11 @@ void Game::UpdateModel()
 
 	for (int i = 0; i < currentAssignedObjects; i++)
 	{
-		numCalcs += worldObjectsPtr->calcsCompleted[i];
+		numCalcs += (float)worldObjectsPtr->calcsCompleted[i];
+		//if (worldObjectsPtr->calcsCompleted[i] < 19999)
+		//{
+		//	int test1 = 0;
+		//}
 	}
 
 	
@@ -412,7 +416,7 @@ void Game::ComposeFrame()
 	// Display number of active objects and MSEC PER FRAME, with other info. as needed
 
 	RetroContent::DrawString(gfx, "NUMBER OF OBJECTS: " + std::to_string(currentAssignedObjects) , Vec2(200.0f, 20.0f), 2, Colors::Red);
-	RetroContent::DrawString(gfx, "PERCENT OPTIMISED: " + std::to_string(100 - (numCalcs * 100) / (currentAssignedObjects * (currentAssignedObjects - 1))), Vec2(200.0f, 60.0f), 2, Colors::Red); // (int)(numCalcs * 100) / (currentAssignedObjects * (currentAssignedObjects - 1))
+	RetroContent::DrawString(gfx, "PERCENT OPTIMISED: " + std::to_string(100 - (int)(((float)numCalcs * 100) / ((float)currentAssignedObjects * (float)(currentAssignedObjects - 1)))), Vec2(200.0f, 60.0f), 2, Colors::Red); // (int)(numCalcs * 100) / (currentAssignedObjects * (currentAssignedObjects - 1))
 	RetroContent::DrawString(gfx, "TOTAL MSEC PER FRAME: " + std::to_string(int(dt * 1000.0f)), Vec2(800.0f, 20.0f), 2, Colors::Yellow);
 	//RetroContent::DrawString(gfx, "CHECK MSEC PER FRAME: " + std::to_string(int(optimiseDt * 1000.0f)), Vec2(800.0f, 80.0f), 2, Colors::Yellow);
 }

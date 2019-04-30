@@ -16,10 +16,10 @@
 
 #define GRAV_CONST 0.004302f
 
-#define NODE_GRAV_THRESHOLD 1000000.0f
+#define NODE_GRAV_THRESHOLD 100000.0f
 
 
-static int numCalcs = 0;
+static float numCalcs = 0.0f;
 
 
 
