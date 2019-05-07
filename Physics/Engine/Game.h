@@ -36,6 +36,7 @@
 #include "Tree.h"
 #include <string>
 #include <thread>
+#include <vector>
 
 class Game
 {
@@ -81,18 +82,18 @@ private:
 
 
 	Vec2 cameraLoc = Vec2(0.0f, 0.0f);
-	float cameraZoomOut = 36.0f;
+	float cameraZoomOut = 48.0f;
 
 	WorldObjects worldObjects;
 
-	int numObjects = 5000;
+	int numObjects = 200000;
 	int currentAssignedObjects = 0;
 
 	Tree tree;
 
 	Vec2 *nodeAveLoc;
 	float *nodeTotalMass;
-	int *nodeObjectsContained;
+	std::vector<std::vector<int>> nodeObjectsContained;
 	
 	int totalNodes = 0;
 	int numPlanes = 0;

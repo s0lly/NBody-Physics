@@ -27,7 +27,7 @@ struct Tree
 
 static void
 RecursivePlaneQuadrantCheckAndApplyGravity(WorldObjects *worldObjects, int maxWorldObjects, int worldObjNum, int maxPlanes, int priorPlane,
-	Vec2 *nodeAveLocs, float *nodeTotalMasses, int * nodeObjectsContained, int priorX, int priorY, float dt)
+	Vec2 *nodeAveLocs, float *nodeTotalMasses, std::vector<std::vector<int>> * nodeObjectsContained, int priorX, int priorY, float dt)
 {
 	int priorPlaneNodeStart = 0;
 	int quadrantPlaneNodeStart = 0;
@@ -68,26 +68,9 @@ RecursivePlaneQuadrantCheckAndApplyGravity(WorldObjects *worldObjects, int maxWo
 				{
 					if (atLowestPlaneLevel)
 					{
-						//for (int i = 0; i < maxWorldObjects; i++)
-						//{
-						//	if (worldObjects->nodeID[worldObjNum] == nodeLookup && worldObjNum != i)
-						//	{
-						//		ApplyGravityToFirst(&worldObjects->loc[worldObjNum], &worldObjects->mass[worldObjNum], &worldObjects->velocity[worldObjNum], &worldObjects->calcsCompleted[worldObjNum],
-						//			worldObjects->loc[i], worldObjects->mass[i], dt, false);
-						//	}
-						//	
-						//	
-						//	
-						//	// TODO: check below must be true - test!
-						//	//
-						//	//
-						//	//
-						//	//
-						//}
-
-						for (int t = 0; t < nodeObjectsContained[nodeLookup * (maxWorldObjects + 1)]; t++)
+						for (int t = 0; t < (*nodeObjectsContained)[nodeLookup].size(); t++)
 						{
-							int targetWorldObject = nodeObjectsContained[nodeLookup * (maxWorldObjects + 1) + t + 1];
+							int targetWorldObject = (*nodeObjectsContained)[nodeLookup][t];
 							if (worldObjNum != targetWorldObject)
 							{
 								ApplyGravityToFirst(&worldObjects->loc[worldObjNum], &worldObjects->mass[worldObjNum], &worldObjects->velocity[worldObjNum], &worldObjects->calcsCompleted[worldObjNum],
@@ -113,19 +96,9 @@ RecursivePlaneQuadrantCheckAndApplyGravity(WorldObjects *worldObjects, int maxWo
 						}
 						else
 						{
-							// TODO: check no if statement required
-							//for (int i = 0; i < maxWorldObjects; i++)
-							//{
-							//	if (worldObjects->nodeID[worldObjNum] == nodeLookup)
-							//	{
-							//		ApplyGravityToFirst(&worldObjects->loc[worldObjNum], &worldObjects->mass[worldObjNum], &worldObjects->velocity[worldObjNum], &worldObjects->calcsCompleted[worldObjNum],
-							//			worldObjects->loc[i], worldObjects->mass[i], dt, false);
-							//	}
-							//}
-
-							for (int t = 0; t < nodeObjectsContained[nodeLookup * (maxWorldObjects + 1)]; t++)
+							for (int t = 0; t < (*nodeObjectsContained)[nodeLookup].size(); t++)
 							{
-								int targetWorldObject = nodeObjectsContained[nodeLookup * (maxWorldObjects + 1) + t + 1];
+								int targetWorldObject = (*nodeObjectsContained)[nodeLookup][t];
 								ApplyGravityToFirst(&worldObjects->loc[worldObjNum], &worldObjects->mass[worldObjNum], &worldObjects->velocity[worldObjNum], &worldObjects->calcsCompleted[worldObjNum],
 									worldObjects->loc[targetWorldObject], worldObjects->mass[targetWorldObject], dt, false);
 							}

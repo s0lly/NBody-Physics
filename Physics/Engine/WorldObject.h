@@ -14,6 +14,7 @@
 struct WorldObjects
 {
 	Vec2 *loc;
+	Vec2 *oldVelocity;
 	Vec2 *velocity;
 	float *mass;
 	float *radius;
@@ -46,7 +47,7 @@ ApplyGravityToFirst(Vec2 *locFirst, float *massFirst, Vec2 *velocityFirst, int *
 					Vec2 locSecond, float massSecond, float dt, bool isNode)
 {
 	// Ensures that infinity speed is not possible
-	float minRadiusSqrdAllowed = 1.0f;
+	float minRadiusSqrdAllowed = 0.1f;
 
 	Vec2 vectorFromFirstToSecond = locSecond - *locFirst;
 

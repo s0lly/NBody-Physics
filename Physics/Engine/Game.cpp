@@ -41,6 +41,7 @@ Game::Game(MainWindow& wnd)
 	// Initialise objects
 
 	worldObjects.loc = new Vec2[numObjects]();
+	worldObjects.oldVelocity = new Vec2[numObjects]();
 	worldObjects.velocity = new Vec2[numObjects]();
 	worldObjects.mass = new float[numObjects]();
 	worldObjects.radius = new float[numObjects]();
@@ -51,26 +52,39 @@ Game::Game(MainWindow& wnd)
 
 	for (int i = 0; i < numObjects; i++)
 	{
-		int sizeOfField = 20000;
+		int sizeOfField = 10000;
 
-		float xRand = (float)(std::rand() % sizeOfField) - (float)(sizeOfField / 2);
-		float yRand = (float)(std::rand() % sizeOfField) - (float)(sizeOfField / 2);
+		float xRand = ((float)(std::rand() % sizeOfField) - (float)(sizeOfField / 2)) * 4.0f;
+		float yRand = ((float)(std::rand() % sizeOfField) - (float)(sizeOfField / 2)) * 4.0f;
+
+		Vec2 locRand(xRand, yRand);
+		locRand = locRand / sqrt(locRand.x * locRand.x + locRand.y * locRand.y);
+		locRand = locRand * (float)(std::rand() % sizeOfField);
 		
 		float massRand = ((float)(std::rand() % 10000) + 1.0f);
 		float radiusRand = std::sqrt(massRand / (PI / 1.0f));
 
-		unsigned char rRand = (unsigned char)(std::rand() % 256);
-		unsigned char gRand = (unsigned char)(std::rand() % 256);
-		unsigned char bRand = (unsigned char)(std::rand() % 256);
+		unsigned char rRand = 64 + (unsigned char)(std::rand() % 192);
+		unsigned char gRand = (256 - rRand) + 64;
+		unsigned char bRand = 255;//(256 - (rRand + gRand) / 2) + 64;
 
-		float magnitudeX = ((float)(std::rand() % 101)) * 1.0f - 50.0f;
-		float magnitudeY = ((float)(std::rand() % 101)) * 1.0f - 50.0f;
+		xRand = abs(xRand) < 1.0f ? 1.0f : xRand;
+		yRand = abs(yRand) < 1.0f ? 1.0f : yRand;
+
+		locRand.x = locRand.x + (((float)(std::rand() % 5) - 2.0f) * ((float)sizeOfField / 2.0f)) / 2.0f;
+		locRand.y = locRand.y + (((float)(std::rand() % 3) - 1.0f) * ((float)sizeOfField / 2.0f)) / 2.0f;
+
+		float magnitudeX = -(locRand.y) / 2.0;
+		float magnitudeY = +(locRand.x) / 2.0;
 
 		Vec2 startForce(magnitudeX, magnitudeY);
 
-		startForce = Vec2();
+		//startForce = Vec2();
 
-		worldObjects.loc[currentAssignedObjects] = Vec2(xRand, yRand);
+		
+		
+
+		worldObjects.loc[currentAssignedObjects] = locRand;
 		worldObjects.velocity[currentAssignedObjects] = startForce;
 		worldObjects.mass[currentAssignedObjects] = massRand;
 		worldObjects.radius[currentAssignedObjects] = radiusRand;
@@ -102,8 +116,10 @@ Game::Game(MainWindow& wnd)
 
 	nodeAveLoc = new Vec2[totalNodes]();
 	nodeTotalMass = new float[totalNodes]();
-	nodeObjectsContained = new int[totalNodes * (currentAssignedObjects + 1)]();
+	nodeObjectsContained.clear();
+	nodeObjectsContained = std::vector<std::vector<int>>(currentAssignedObjects);
 
+	cameraLoc = Vec2(0.0f, 0.0f);
 }
 
 void Game::Go()
@@ -176,15 +192,12 @@ void Game::UpdateModel()
 
 	// We want some higher power of 4 than current worldObjects to get fine resolution on calculations
 
-	optimiseStart = std::chrono::system_clock::now(); // 35ms
+	optimiseStart = std::chrono::system_clock::now();
 
 	memset(nodeAveLoc, 0, sizeof(Vec2) * totalNodes);
 	memset(nodeTotalMass, 0, sizeof(float) * totalNodes);
-
-	for (int i = 0; i < pow(4, (numPlanes - 1)); i++)
-	{
-		nodeObjectsContained[i * (currentAssignedObjects + 1)] = 0;
-	}
+	nodeObjectsContained.clear();
+	nodeObjectsContained = std::vector<std::vector<int>>(currentAssignedObjects);
 
 	optimiseEnd = std::chrono::system_clock::now();
 	std::chrono::duration<float> optimisedElapsedTime = optimiseEnd - optimiseStart;
@@ -202,8 +215,7 @@ void Game::UpdateModel()
 		int detailedNode = y * detailedNodeDim + x;
 
 		worldObjects.nodeID[i] = detailedNode;
-		nodeObjectsContained[detailedNode * (currentAssignedObjects + 1)] += 1;
-		nodeObjectsContained[detailedNode * (currentAssignedObjects + 1) + nodeObjectsContained[detailedNode * (currentAssignedObjects + 1)]] = i;
+		nodeObjectsContained[detailedNode].push_back(i);
 		
 
 		nodeAveLoc[detailedNode] = nodeAveLoc[detailedNode] + worldObjects.loc[i] * worldObjects.mass[i];
@@ -266,15 +278,17 @@ void Game::UpdateModel()
 	//////////////////////
 
 
+	// do a memcopy here?
+	for (int i = 0; i < currentAssignedObjects; i++)
+	{
+		worldObjects.oldVelocity[i] = worldObjects.velocity[i];
+	}
+	
 	// we will want to check the topmost quadrant first
-
-	
-	
 	int currentPlane = numPlanes - 1;
 
 	numCalcs = 0.0f;
 
-	
 
 	int numThreads = 8;
 	int threadSize = currentAssignedObjects / numThreads + 1;
@@ -297,7 +311,7 @@ void Game::UpdateModel()
 				worldObjectsPtr->calcsCompleted[i] = 0;
 
 				RecursivePlaneQuadrantCheckAndApplyGravity(worldObjectsPtr, (*currentAssignedObjectsPtr), i, *numPlanesPtr, *numPlanesPtr - 1,
-					*nodeAveLocPtr, *nodeTotalMassPtr, *nodeObjectsContainedPtr, 0, 0, (*dtPtr));
+					*nodeAveLocPtr, *nodeTotalMassPtr, nodeObjectsContainedPtr, 0, 0, (*dtPtr));
 			}
 		}));
 	}
@@ -307,25 +321,14 @@ void Game::UpdateModel()
 	for (int i = 0; i < currentAssignedObjects; i++)
 	{
 		numCalcs += (float)worldObjectsPtr->calcsCompleted[i];
-		//if (worldObjectsPtr->calcsCompleted[i] < 19999)
-		//{
-		//	int test1 = 0;
-		//}
 	}
 
-	
-
-	// unload heap allocations
-
-	//delete nodeAveLoc;
-	//delete nodeTotalMass;
-	//delete nodeObjectsContained;
 
 
 	// Update all objects locations based on all active forces
 	for (int i = 0; i < currentAssignedObjects; i++)
 	{
-		worldObjects.loc[i] = worldObjects.loc[i] + worldObjects.velocity[i] * dt;
+		worldObjects.loc[i] = worldObjects.loc[i] +  (worldObjects.oldVelocity[i] + worldObjects.velocity[i]) * dt * 0.5f;
 	}
 
 	
@@ -401,6 +404,31 @@ void Game::UpdateModel()
 	cameraLoc = Vec2((newLoc.x * percentageToMove + cameraLoc.x * (1.0f - percentageToMove)), (newLoc.y * percentageToMove + cameraLoc.y * (1.0f - percentageToMove)));
 
 
+
+	// Smooth camera zoom
+
+	//float smallestY = 0.0f;
+	//float largestY = 1.0f;
+	//
+	//for (int i = 0; i < currentAssignedObjects; i++)
+	//{
+	//	if (worldObjects.loc[i].y - cameraLoc.y > largestY)
+	//	{
+	//		largestY = worldObjects.loc[i].y - cameraLoc.y;
+	//	}
+	//	if (cameraLoc.y - worldObjects.loc[i].y > smallestY)
+	//	{
+	//		smallestY = cameraLoc.y - worldObjects.loc[i].y;
+	//	}
+	//}
+	//
+	//float newY = largestY > smallestY ? largestY : smallestY;
+	//
+	//float newCameraZoomOut = ((2.0f * newY) / (float)gfx.ScreenHeight) * 1.2f;
+	//
+	//percentageToMove = 0.02f;
+	//cameraZoomOut = newCameraZoomOut * percentageToMove + cameraZoomOut * (1.0f - percentageToMove);
+
 }
 
 void Game::ComposeFrame()
@@ -409,14 +437,14 @@ void Game::ComposeFrame()
 
 	for (int i = 0; i < currentAssignedObjects; i++)
 	{
-		gfx.DrawCircle(Vec2((worldObjects.loc[i].x - cameraLoc.x) / (cameraZoomOut) + (float)(gfx.ScreenWidth / 2), -(worldObjects.loc[i].y - cameraLoc.y) / (cameraZoomOut) + (float)(gfx.ScreenHeight / 2)), worldObjects.radius[i] / (cameraZoomOut), worldObjects.color[i]);
+		gfx.DrawCircle(Vec2((worldObjects.loc[i].x - cameraLoc.x) / (cameraZoomOut) + (float)(gfx.ScreenWidth / 2), -(worldObjects.loc[i].y - cameraLoc.y) / (cameraZoomOut) + (float)(gfx.ScreenHeight / 2)), worldObjects.radius[i] / (cameraZoomOut), worldObjects.color[i], 0.15f);
 	}
 
 
 	// Display number of active objects and MSEC PER FRAME, with other info. as needed
 
 	RetroContent::DrawString(gfx, "NUMBER OF OBJECTS: " + std::to_string(currentAssignedObjects) , Vec2(200.0f, 20.0f), 2, Colors::Red);
-	RetroContent::DrawString(gfx, "PERCENT OPTIMISED: " + std::to_string(100 - (int)(((float)numCalcs * 100) / ((float)currentAssignedObjects * (float)(currentAssignedObjects - 1)))), Vec2(200.0f, 60.0f), 2, Colors::Red); // (int)(numCalcs * 100) / (currentAssignedObjects * (currentAssignedObjects - 1))
+	//RetroContent::DrawString(gfx, "PERCENT OPTIMISED: " + std::to_string(100 - (int)(((float)numCalcs * 100) / ((float)currentAssignedObjects * (float)(currentAssignedObjects - 1)))), Vec2(200.0f, 60.0f), 2, Colors::Red); // (int)(numCalcs * 100) / (currentAssignedObjects * (currentAssignedObjects - 1))
 	RetroContent::DrawString(gfx, "TOTAL MSEC PER FRAME: " + std::to_string(int(dt * 1000.0f)), Vec2(800.0f, 20.0f), 2, Colors::Yellow);
 	//RetroContent::DrawString(gfx, "CHECK MSEC PER FRAME: " + std::to_string(int(optimiseDt * 1000.0f)), Vec2(800.0f, 80.0f), 2, Colors::Yellow);
 }
