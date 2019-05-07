@@ -82,11 +82,11 @@ private:
 
 
 	Vec2 cameraLoc = Vec2(0.0f, 0.0f);
-	float cameraZoomOut = 48.0f;
+	float cameraZoomOut = 300.0f;
 
 	WorldObjects worldObjects;
 
-	int numObjects = 200000;
+	int numObjects = 250000;
 	int currentAssignedObjects = 0;
 
 	Tree tree;

@@ -54,28 +54,28 @@ Game::Game(MainWindow& wnd)
 	{
 		int sizeOfField = 10000;
 
-		float xRand = ((float)(std::rand() % sizeOfField) - (float)(sizeOfField / 2)) * 4.0f;
-		float yRand = ((float)(std::rand() % sizeOfField) - (float)(sizeOfField / 2)) * 4.0f;
+		float xRand = ((float)(std::rand() % sizeOfField) - (float)(sizeOfField / 2)) * 8.0f;
+		float yRand = ((float)(std::rand() % sizeOfField) - (float)(sizeOfField / 2)) * 8.0f;
 
 		Vec2 locRand(xRand, yRand);
 		locRand = locRand / sqrt(locRand.x * locRand.x + locRand.y * locRand.y);
 		locRand = locRand * (float)(std::rand() % sizeOfField);
 		
 		float massRand = ((float)(std::rand() % 10000) + 1.0f);
-		float radiusRand = std::sqrt(massRand / (PI / 1.0f));
+		float radiusRand = std::sqrt(massRand / (PI / 20.0f));
 
-		unsigned char rRand = 64 + (unsigned char)(std::rand() % 192);
-		unsigned char gRand = (256 - rRand) + 64;
-		unsigned char bRand = 255;//(256 - (rRand + gRand) / 2) + 64;
+		unsigned char bRand = 64 + (unsigned char)(std::rand() % 192);
+		unsigned char gRand = 128 + (unsigned char)(std::rand() % 128);
+		unsigned char rRand = 192 + (unsigned char)(std::rand() % 64);
 
 		xRand = abs(xRand) < 1.0f ? 1.0f : xRand;
 		yRand = abs(yRand) < 1.0f ? 1.0f : yRand;
 
-		locRand.x = locRand.x + (((float)(std::rand() % 5) - 2.0f) * ((float)sizeOfField / 2.0f)) / 2.0f;
-		locRand.y = locRand.y + (((float)(std::rand() % 3) - 1.0f) * ((float)sizeOfField / 2.0f)) / 2.0f;
+		locRand.x = locRand.x + (((float)(std::rand() % 5) - 2.0f) * ((float)sizeOfField / 2.0f)) * 8.0f;
+		//locRand.y = locRand.y + (((float)(std::rand() % 2) - 1.0f) * ((float)sizeOfField / 2.0f)) * 8.0f;
 
-		float magnitudeX = -(locRand.y) / 2.0;
-		float magnitudeY = +(locRand.x) / 2.0;
+		float magnitudeX = -(locRand.y) * 0.03f;
+		float magnitudeY = +(locRand.x) * 0.03f;
 
 		Vec2 startForce(magnitudeX, magnitudeY);
 
@@ -290,7 +290,7 @@ void Game::UpdateModel()
 	numCalcs = 0.0f;
 
 
-	int numThreads = 8;
+	int numThreads = 16;
 	int threadSize = currentAssignedObjects / numThreads + 1;
 	auto worldObjectsPtr = &worldObjects;
 	auto numPlanesPtr = &numPlanes;
@@ -437,15 +437,15 @@ void Game::ComposeFrame()
 
 	for (int i = 0; i < currentAssignedObjects; i++)
 	{
-		gfx.DrawCircle(Vec2((worldObjects.loc[i].x - cameraLoc.x) / (cameraZoomOut) + (float)(gfx.ScreenWidth / 2), -(worldObjects.loc[i].y - cameraLoc.y) / (cameraZoomOut) + (float)(gfx.ScreenHeight / 2)), worldObjects.radius[i] / (cameraZoomOut), worldObjects.color[i], 0.15f);
+		gfx.DrawCircle(Vec2((worldObjects.loc[i].x - cameraLoc.x) / (cameraZoomOut) + (float)(gfx.ScreenWidth / 2), -(worldObjects.loc[i].y - cameraLoc.y) / (cameraZoomOut) + (float)(gfx.ScreenHeight / 2)), worldObjects.radius[i] / (cameraZoomOut), worldObjects.color[i], 0.2f);
 	}
 
 
 	// Display number of active objects and MSEC PER FRAME, with other info. as needed
 
-	RetroContent::DrawString(gfx, "NUMBER OF OBJECTS: " + std::to_string(currentAssignedObjects) , Vec2(200.0f, 20.0f), 2, Colors::Red);
+	//RetroContent::DrawString(gfx, "NUMBER OF OBJECTS: " + std::to_string(currentAssignedObjects) , Vec2(200.0f, 20.0f), 2, Colors::Red);
 	//RetroContent::DrawString(gfx, "PERCENT OPTIMISED: " + std::to_string(100 - (int)(((float)numCalcs * 100) / ((float)currentAssignedObjects * (float)(currentAssignedObjects - 1)))), Vec2(200.0f, 60.0f), 2, Colors::Red); // (int)(numCalcs * 100) / (currentAssignedObjects * (currentAssignedObjects - 1))
-	RetroContent::DrawString(gfx, "TOTAL MSEC PER FRAME: " + std::to_string(int(dt * 1000.0f)), Vec2(800.0f, 20.0f), 2, Colors::Yellow);
+	//RetroContent::DrawString(gfx, "TOTAL MSEC PER FRAME: " + std::to_string(int(dt * 1000.0f)), Vec2(800.0f, 20.0f), 2, Colors::Yellow);
 	//RetroContent::DrawString(gfx, "CHECK MSEC PER FRAME: " + std::to_string(int(optimiseDt * 1000.0f)), Vec2(800.0f, 80.0f), 2, Colors::Yellow);
 }
 

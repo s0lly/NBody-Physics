@@ -47,14 +47,14 @@ ApplyGravityToFirst(Vec2 *locFirst, float *massFirst, Vec2 *velocityFirst, int *
 					Vec2 locSecond, float massSecond, float dt, bool isNode)
 {
 	// Ensures that infinity speed is not possible
-	float minRadiusSqrdAllowed = 0.1f;
+	float minRadiusSqrdAllowed = 0.01f;
 
 	Vec2 vectorFromFirstToSecond = locSecond - *locFirst;
 
 	float radiusSqrd = GetVec2Magnitude(vectorFromFirstToSecond);
 	radiusSqrd = radiusSqrd < minRadiusSqrdAllowed ? minRadiusSqrdAllowed : radiusSqrd;
 
-	float gravityMagnitude = 10.0f * (GRAV_CONST * (*massFirst) * massSecond) / radiusSqrd; // The constant can be changed to effect all objects masses
+	float gravityMagnitude = 1.0f * (GRAV_CONST * (*massFirst) * massSecond) / radiusSqrd; // The constant can be changed to effect all objects masses
 
 	Vec2 gravOnFirstToSecond = GetNormalizedVec2(vectorFromFirstToSecond) * gravityMagnitude;
 

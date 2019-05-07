@@ -69,9 +69,9 @@ public:
 	{
 		Color existingColor = pSysBuffer[Graphics::ScreenWidth * y + x];
 		PutPixel(x, y, 
-			{ (unsigned char)((float)c.GetR() * a + (float)existingColor.GetR() * (1.0f - a)),
-			(unsigned char)((float)c.GetG() * a + (float)existingColor.GetG() * (1.0f - a)),
-			(unsigned char)((float)c.GetB() * a + (float)existingColor.GetB() * (1.0f - a)) });
+			{	(unsigned char)((255.0f - (float)existingColor.GetR()) * (a) * (float)c.GetR() / 255.0f + (float)existingColor.GetR()),
+				(unsigned char)((255.0f - (float)existingColor.GetG()) * (a) * (float)c.GetG() / 255.0f + (float)existingColor.GetG()),
+				(unsigned char)((255.0f - (float)existingColor.GetB()) * (a) * (float)c.GetB() / 255.0f + (float)existingColor.GetB()) });
 	}
 
 	void DrawRect(int x, int y, int length, int height, Color c)
