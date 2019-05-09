@@ -87,15 +87,9 @@ private:
 	WorldObjects worldObjects;
 
 	int numObjects = 250000;
-	int currentAssignedObjects = 0;
 
 	Tree tree;
 
-	Vec2 *nodeAveLoc;
-	float *nodeTotalMass;
-	std::vector<std::vector<int>> nodeObjectsContained;
-	
-	int totalNodes = 0;
-	int numPlanes = 0;
+
 
 };

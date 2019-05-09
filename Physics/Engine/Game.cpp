@@ -40,89 +40,11 @@ Game::Game(MainWindow& wnd)
 {
 	// Initialise objects
 
-	worldObjects.loc = new Vec2[numObjects]();
-	worldObjects.oldVelocity = new Vec2[numObjects]();
-	worldObjects.velocity = new Vec2[numObjects]();
-	worldObjects.mass = new float[numObjects]();
-	worldObjects.radius = new float[numObjects]();
-	worldObjects.color = new Color[numObjects]();
-	worldObjects.nodeID = new int[numObjects]();
-	worldObjects.calcsCompleted = new int[numObjects]();
-
-
-	for (int i = 0; i < numObjects; i++)
-	{
-		int sizeOfField = 10000;
-
-		float xRand = ((float)(std::rand() % sizeOfField) - (float)(sizeOfField / 2));
-		float yRand = ((float)(std::rand() % sizeOfField) - (float)(sizeOfField / 2));
-
-		Vec2 locRand(xRand, yRand);
-		locRand = locRand / sqrt(locRand.x * locRand.x + locRand.y * locRand.y);
-		locRand.x = locRand.x * (float)(std::rand() % sizeOfField) * 10.0f;
-		locRand.y = locRand.y * (float)(std::rand() % sizeOfField) * 1.0f;
-		
-		float massRand = ((float)(std::rand() % 10000) + 1.0f);
-		float radiusRand = std::sqrt(massRand / (PI / 20.0f));
-
-		unsigned char bRand = 64 + (unsigned char)(std::rand() % 192);
-		unsigned char gRand = 128 + (unsigned char)(std::rand() % 128);
-		unsigned char rRand = 192 + (unsigned char)(std::rand() % 64);
-
-		xRand = abs(xRand) < 1.0f ? 1.0f : xRand;
-		yRand = abs(yRand) < 1.0f ? 1.0f : yRand;
-
-		//locRand.x = locRand.x + (((float)(std::rand() % 5) - 2.0f) * ((float)sizeOfField / 2.0f)) * 8.0f;
-		//locRand.y = locRand.y + (((float)(std::rand() % 2) - 1.0f) * ((float)sizeOfField / 2.0f)) * 8.0f;
-
-		float magnitudeX = -(locRand.y) * 0.03f;
-		float magnitudeY = +(locRand.x) * 0.03f;
-
-		Vec2 startForce(magnitudeX, magnitudeY);
-
-		//startForce = Vec2();
-
-		
-		
-
-		worldObjects.loc[currentAssignedObjects] = locRand;
-		worldObjects.velocity[currentAssignedObjects] = startForce;
-		worldObjects.mass[currentAssignedObjects] = massRand;
-		worldObjects.radius[currentAssignedObjects] = radiusRand;
-		worldObjects.color[currentAssignedObjects] = Color(rRand, gRand, bRand);
-
-		currentAssignedObjects++;
-	}
-
-	tree.topLeft = Vec2();
-	tree.botRight = Vec2();
-
-	int lowestPowerOf4 = 1;
-	numPlanes = 0;
-
-	while (lowestPowerOf4 < currentAssignedObjects)
-	{
-		lowestPowerOf4 *= 4;
-		numPlanes++;
-	}
-	lowestPowerOf4 *= 4;
-	numPlanes++;
-	lowestPowerOf4 *= 4;
-	numPlanes++;
-
-	totalNodes = 0;
-
-	for (int p = 0; p < numPlanes; p++)
-	{
-		totalNodes += pow(4, p);
-	}
+	worldObjects.Init(numObjects);
 
 
 
-	nodeAveLoc = new Vec2[totalNodes]();
-	nodeTotalMass = new float[totalNodes]();
-	nodeObjectsContained.clear();
-	nodeObjectsContained = std::vector<std::vector<int>>(pow(4, numPlanes));
+	tree.Init(worldObjects.currentAssignedObjects);
 
 	cameraLoc = Vec2(0.0f, 0.0f);
 
@@ -186,110 +108,13 @@ void Game::ProcessInput()
 void Game::UpdateModel()
 {
 	
+	tree.Refresh(worldObjects);
+
 
 	// Worldspace is the highest level space (equivalent to maxPlane). Each space has 4 qaudrants.
-
-	tree.topLeft = Vec2();
-	tree.botRight = Vec2();
-
-	for (int i = 0; i < currentAssignedObjects; i++)
-	{
-		tree.topLeft.x = tree.topLeft.x < worldObjects.loc[i].x ? tree.topLeft.x : worldObjects.loc[i].x - 1.0f;
-		tree.topLeft.y = tree.topLeft.y < worldObjects.loc[i].y ? tree.topLeft.y : worldObjects.loc[i].y - 1.0f;
-		tree.botRight.x = tree.botRight.x > worldObjects.loc[i].x ? tree.botRight.x : worldObjects.loc[i].x + 1.0f;
-		tree.botRight.y = tree.botRight.y > worldObjects.loc[i].y ? tree.botRight.y : worldObjects.loc[i].y + 1.0f;
-	}
-
-	float treeWidth = tree.botRight.x - tree.topLeft.x;
-	float treeHeight = tree.botRight.y - tree.topLeft.y;
-
-	// We want some higher power of 4 than current worldObjects to get fine resolution on calculations
-
-	
-
-	memset(nodeAveLoc, 0, sizeof(Vec2) * totalNodes);
-	memset(nodeTotalMass, 0, sizeof(float) * totalNodes);
-	//nodeObjectsContained.clear();
-	nodeObjectsContained = std::vector<std::vector<int>>(pow(4, numPlanes));
-
-
 	// set worldObjects to detailed plane nodes
 
-	
 
-	auto worldObjectsPtr = &worldObjects;
-	auto numPlanesPtr = &numPlanes;
-	auto nodeAveLocPtr = &nodeAveLoc;
-	auto nodeTotalMassPtr = &nodeTotalMass;
-	auto nodeObjectsContainedPtr = &nodeObjectsContained;
-	auto currentAssignedObjectsPtr = &currentAssignedObjects;
-	auto treePtr = &tree;
-	auto dtPtr = &dt;
-
-	int numThreads = 4;
-
-	int detailedNodeDim = pow(2, (numPlanes - 1));
-	float treeNodeWidthInv = 1.0f / (treeWidth / (float)detailedNodeDim);
-	float treeNodeHeightInv = 1.0f / (treeHeight / (float)detailedNodeDim);
-
-	std::vector<std::thread> threadList;
-	for (int k = 0; k < numThreads; k++)
-	{
-		threadList.push_back(std::thread([treeNodeWidthInv, treeNodeHeightInv, detailedNodeDim, worldObjectsPtr, k, currentAssignedObjectsPtr, numPlanesPtr, nodeAveLocPtr, nodeTotalMassPtr, nodeObjectsContainedPtr, dtPtr, treePtr]()
-		{
-			for (int i = 0; i < *currentAssignedObjectsPtr; i++)
-			{
-				int x = (int)((worldObjectsPtr->loc[i].x - treePtr->topLeft.x) * treeNodeWidthInv);
-				int y = (int)((worldObjectsPtr->loc[i].y - treePtr->topLeft.y) * treeNodeHeightInv);
-
-				if (x >= (detailedNodeDim * (k % 2)) / 2 && x < (detailedNodeDim * ((k % 2) + 1)) / 2
-					&& y >= (detailedNodeDim * (int)(k / 2)) / 2 && y < (detailedNodeDim * ((int)(k / 2) + 1)) / 2)
-				{
-					int detailedNode = y * detailedNodeDim + x;
-
-					worldObjectsPtr->nodeID[i] = detailedNode;
-					(*nodeObjectsContainedPtr)[detailedNode].push_back(i);
-
-
-					(*nodeAveLocPtr)[detailedNode] = (*nodeAveLocPtr)[detailedNode] + worldObjectsPtr->loc[i] * worldObjectsPtr->mass[i];
-					(*nodeTotalMassPtr)[detailedNode] = (*nodeTotalMassPtr)[detailedNode] + worldObjectsPtr->mass[i];
-
-					// we've loaded in lowest plane, now work up
-
-					int currX = x;
-					int currY = y;
-					int numOfPriorPlaneNodes = 0;
-
-					Vec2 locTimesMass = worldObjectsPtr->loc[i] * worldObjectsPtr->mass[i];
-
-					for (int p = 1; p < *numPlanesPtr - 1; p++)
-					{
-						numOfPriorPlaneNodes += pow(4, (*numPlanesPtr - p));
-
-						currX /= 2;
-						currY /= 2;
-
-						int planeNode = numOfPriorPlaneNodes + currY * pow(2, (*numPlanesPtr - p - 1)) + currX;
-
-						(*nodeAveLocPtr)[planeNode] = (*nodeAveLocPtr)[planeNode] + locTimesMass;
-						(*nodeTotalMassPtr)[planeNode] = (*nodeTotalMassPtr)[planeNode] + worldObjectsPtr->mass[i];
-					}
-				}
-			}
-		}));
-	}
-	std::for_each(threadList.begin(), threadList.end(), std::mem_fn(&std::thread::join));
-
-	
-
-
-	for (int n = 0; n < totalNodes - 1; n++)
-	{
-		if (nodeTotalMass[n] > 0.0f)
-		{
-			nodeAveLoc[n] = nodeAveLoc[n] / nodeTotalMass[n];
-		}
-	}
 
 	
 	
@@ -317,7 +142,7 @@ void Game::UpdateModel()
 	
 
 	// do a memcopy here?
-	for (int i = 0; i < currentAssignedObjects; i++)
+	for (int i = 0; i < worldObjects.currentAssignedObjects; i++)
 	{
 		worldObjects.oldVelocity[i] = worldObjects.velocity[i];
 	}
@@ -325,25 +150,28 @@ void Game::UpdateModel()
 	optimiseStart = std::chrono::system_clock::now(); // 145ms
 	
 	// we will want to check the topmost quadrant first
-	int currentPlane = numPlanes - 1;
+	int currentPlane = tree.numPlanes - 1;
 
 	numCalcs = 0.0f;
 
+	auto worldObjectsPtr = &worldObjects;
+	auto treePtr = &tree;
+	auto dtPtr = &dt;
 
 	int numThreads2 = 20;
-	int threadSize = currentAssignedObjects / numThreads + 1;
+	int threadSize = worldObjects.currentAssignedObjects / numThreads2 + 1;
 
 	std::vector<std::thread> threadList2;
 	for (int k = 0; k < numThreads2; k++)
 	{
-		threadList2.push_back(std::thread([worldObjectsPtr, k, currentAssignedObjectsPtr, numPlanesPtr, nodeAveLocPtr, nodeTotalMassPtr, nodeObjectsContainedPtr, dtPtr, threadSize]()
+		threadList2.push_back(std::thread([worldObjectsPtr, k, dtPtr, threadSize, treePtr]()
 		{
-			for (int i = k * threadSize; (i < (k + 1) * threadSize) && (i < (*currentAssignedObjectsPtr)); i++)
+			for (int i = k * threadSize; (i < (k + 1) * threadSize) && (i < (worldObjectsPtr->currentAssignedObjects)); i++)
 			{
 				//worldObjectsPtr->calcsCompleted[i] = 0;
 
-				RecursivePlaneQuadrantCheckAndApplyGravity(worldObjectsPtr, (*currentAssignedObjectsPtr), i, *numPlanesPtr, *numPlanesPtr - 1,
-					*nodeAveLocPtr, *nodeTotalMassPtr, nodeObjectsContainedPtr, 0, 0, (*dtPtr));
+				RecursivePlaneQuadrantCheckAndApplyGravity(worldObjectsPtr, (worldObjectsPtr->currentAssignedObjects), i, treePtr->numPlanes, treePtr->numPlanes - 1,
+					treePtr->nodeAveLoc, treePtr->nodeTotalMass, &(treePtr->nodeObjectsContained), 0, 0, (*dtPtr));
 			}
 		}));
 	}
@@ -362,7 +190,7 @@ void Game::UpdateModel()
 
 
 	// Update all objects locations based on all active forces
-	for (int i = 0; i < currentAssignedObjects; i++)
+	for (int i = 0; i < worldObjects.currentAssignedObjects; i++)
 	{
 		worldObjects.loc[i] = worldObjects.loc[i] +  (worldObjects.oldVelocity[i] + worldObjects.velocity[i]) * dt * 0.5f;
 	}
@@ -421,7 +249,7 @@ void Game::UpdateModel()
 	float alignedMassYLoc = 0.0f;
 	float totalMass = 0.0f;
 	
-	for (int i = 0; i < currentAssignedObjects; i++)
+	for (int i = 0; i < worldObjects.currentAssignedObjects; i++)
 	{
 		alignedMassXLoc += worldObjects.loc[i].x * worldObjects.mass[i];
 		alignedMassYLoc += worldObjects.loc[i].y * worldObjects.mass[i];
@@ -472,7 +300,7 @@ void Game::ComposeFrame()
 	
 	// Draw all objects
 
-	for (int i = 0; i < currentAssignedObjects; i++)
+	for (int i = 0; i < worldObjects.currentAssignedObjects; i++)
 	{
 		gfx.DrawCircle(Vec2((worldObjects.loc[i].x - cameraLoc.x) / (cameraZoomOut) + (float)(gfx.ScreenWidth / 2), -(worldObjects.loc[i].y - cameraLoc.y) / (cameraZoomOut) + (float)(gfx.ScreenHeight / 2)), worldObjects.radius[i] * 4.0f / (cameraZoomOut), worldObjects.color[i], 0.8f); //(cameraZoomOut) / 500.0f
 	}

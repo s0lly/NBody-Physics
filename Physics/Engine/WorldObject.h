@@ -21,6 +21,64 @@ struct WorldObjects
 	Color *color;
 	int *nodeID;
 	int *calcsCompleted;
+	int currentAssignedObjects;
+
+	void Init(int numObjects)
+	{
+		loc = new Vec2[numObjects]();
+		oldVelocity = new Vec2[numObjects]();
+		velocity = new Vec2[numObjects]();
+		mass = new float[numObjects]();
+		radius = new float[numObjects]();
+		color = new Color[numObjects]();
+		nodeID = new int[numObjects]();
+		calcsCompleted = new int[numObjects]();
+		currentAssignedObjects = 0;
+
+		for (int i = 0; i < numObjects; i++)
+		{
+			int sizeOfField = 10000;
+
+			float xRand = ((float)(std::rand() % sizeOfField) - (float)(sizeOfField / 2));
+			float yRand = ((float)(std::rand() % sizeOfField) - (float)(sizeOfField / 2));
+
+			Vec2 locRand(xRand, yRand);
+			locRand = locRand / sqrt(locRand.x * locRand.x + locRand.y * locRand.y);
+			locRand.x = locRand.x * (float)(std::rand() % sizeOfField) * 10.0f;
+			locRand.y = locRand.y * (float)(std::rand() % sizeOfField) * 1.0f;
+
+			float massRand = ((float)(std::rand() % 10000) + 1.0f);
+			float radiusRand = std::sqrt(massRand / (PI / 20.0f));
+
+			unsigned char bRand = 64 + (unsigned char)(std::rand() % 192);
+			unsigned char gRand = 128 + (unsigned char)(std::rand() % 128);
+			unsigned char rRand = 192 + (unsigned char)(std::rand() % 64);
+
+			xRand = abs(xRand) < 1.0f ? 1.0f : xRand;
+			yRand = abs(yRand) < 1.0f ? 1.0f : yRand;
+
+			//locRand.x = locRand.x + (((float)(std::rand() % 5) - 2.0f) * ((float)sizeOfField / 2.0f)) * 8.0f;
+			//locRand.y = locRand.y + (((float)(std::rand() % 2) - 1.0f) * ((float)sizeOfField / 2.0f)) * 8.0f;
+
+			float magnitudeX = -(locRand.y) * 0.03f;
+			float magnitudeY = +(locRand.x) * 0.03f;
+
+			Vec2 startForce(magnitudeX, magnitudeY);
+
+			//startForce = Vec2();
+
+
+
+
+			loc[currentAssignedObjects] = locRand;
+			velocity[currentAssignedObjects] = startForce;
+			mass[currentAssignedObjects] = massRand;
+			radius[currentAssignedObjects] = radiusRand;
+			color[currentAssignedObjects] = Color(rRand, gRand, bRand);
+
+			currentAssignedObjects++;
+		}
+	}
 };
 
 
