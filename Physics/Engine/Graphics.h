@@ -117,7 +117,7 @@ public:
 
 				if (distSqrdTotal < radiusSqrd)
 				{
-					PutPixelWithAlphaBlend(i, j, c, alpha);
+					PutPixelWithAlphaBlend(i, j, c, alpha * pow((radiusSqrd - distSqrdTotal) / radiusSqrd, 2.0f));
 				}
 			}
 		}

@@ -54,8 +54,8 @@ Game::Game(MainWindow& wnd)
 	{
 		int sizeOfField = 10000;
 
-		float xRand = ((float)(std::rand() % sizeOfField) - (float)(sizeOfField / 2)) * 8.0f;
-		float yRand = ((float)(std::rand() % sizeOfField) - (float)(sizeOfField / 2)) * 8.0f;
+		float xRand = ((float)(std::rand() % sizeOfField) - (float)(sizeOfField / 2));
+		float yRand = ((float)(std::rand() % sizeOfField) - (float)(sizeOfField / 2));
 
 		Vec2 locRand(xRand, yRand);
 		locRand = locRand / sqrt(locRand.x * locRand.x + locRand.y * locRand.y);
@@ -124,7 +124,7 @@ Game::Game(MainWindow& wnd)
 
 void Game::Go()
 {
-	start = std::chrono::system_clock::now();
+	start = std::chrono::system_clock::now(); // 500ms
 
 	gfx.BeginFrame();
 
@@ -172,7 +172,7 @@ void Game::ProcessInput()
 
 void Game::UpdateModel()
 {
-	
+	optimiseStart = std::chrono::system_clock::now(); // 180ms
 
 	// Worldspace is the highest level space (equivalent to maxPlane). Each space has 4 qaudrants.
 
@@ -192,25 +192,29 @@ void Game::UpdateModel()
 
 	// We want some higher power of 4 than current worldObjects to get fine resolution on calculations
 
-	optimiseStart = std::chrono::system_clock::now();
+	
 
 	memset(nodeAveLoc, 0, sizeof(Vec2) * totalNodes);
 	memset(nodeTotalMass, 0, sizeof(float) * totalNodes);
-	nodeObjectsContained.clear();
+	//nodeObjectsContained.clear();
 	nodeObjectsContained = std::vector<std::vector<int>>(currentAssignedObjects);
 
+	
 	optimiseEnd = std::chrono::system_clock::now();
 	std::chrono::duration<float> optimisedElapsedTime = optimiseEnd - optimiseStart;
 	optimiseDt = optimisedElapsedTime.count(); //dt = 1.0f;//
-
 	// set worldObjects to detailed plane nodes
 
+	
+
 	int detailedNodeDim = pow(2, (numPlanes - 1));
+	float treeNodeWidthInv = 1.0f / (treeWidth / (float)detailedNodeDim);
+	float treeNodeHeightInv = 1.0f / (treeHeight / (float)detailedNodeDim);
 
 	for (int i = 0; i < currentAssignedObjects; i++)
 	{
-		int x = (int)((worldObjects.loc[i].x - tree.topLeft.x) / (treeWidth / (float)detailedNodeDim));
-		int y = (int)((worldObjects.loc[i].y - tree.topLeft.y) / (treeHeight / (float)detailedNodeDim));
+		int x = (int)((worldObjects.loc[i].x - tree.topLeft.x) * treeNodeWidthInv);
+		int y = (int)((worldObjects.loc[i].y - tree.topLeft.y) * treeNodeHeightInv);
 
 		int detailedNode = y * detailedNodeDim + x;
 
@@ -227,7 +231,7 @@ void Game::UpdateModel()
 		int currY = y;
 		int numOfPriorPlaneNodes = 0;
 
-		for (int p = 1; p < numPlanes; p++)
+		for (int p = 1; p < numPlanes - 1; p++)
 		{
 			numOfPriorPlaneNodes += pow(4, (numPlanes - p));
 
@@ -243,10 +247,11 @@ void Game::UpdateModel()
 	}
 
 	
+	
+	
 
 
-
-	for (int n = 0; n < totalNodes; n++)
+	for (int n = 0; n < totalNodes - 1; n++)
 	{
 		if (nodeTotalMass[n] > 0.0f)
 		{
@@ -277,12 +282,15 @@ void Game::UpdateModel()
 	//
 	//////////////////////
 
+	
 
 	// do a memcopy here?
 	for (int i = 0; i < currentAssignedObjects; i++)
 	{
 		worldObjects.oldVelocity[i] = worldObjects.velocity[i];
 	}
+
+	
 	
 	// we will want to check the topmost quadrant first
 	int currentPlane = numPlanes - 1;
@@ -290,7 +298,7 @@ void Game::UpdateModel()
 	numCalcs = 0.0f;
 
 
-	int numThreads = 16;
+	int numThreads = 20;
 	int threadSize = currentAssignedObjects / numThreads + 1;
 	auto worldObjectsPtr = &worldObjects;
 	auto numPlanesPtr = &numPlanes;
@@ -308,7 +316,7 @@ void Game::UpdateModel()
 		{
 			for (int i = k * threadSize; (i < (k + 1) * threadSize) && (i < (*currentAssignedObjectsPtr)); i++)
 			{
-				worldObjectsPtr->calcsCompleted[i] = 0;
+				//worldObjectsPtr->calcsCompleted[i] = 0;
 
 				RecursivePlaneQuadrantCheckAndApplyGravity(worldObjectsPtr, (*currentAssignedObjectsPtr), i, *numPlanesPtr, *numPlanesPtr - 1,
 					*nodeAveLocPtr, *nodeTotalMassPtr, nodeObjectsContainedPtr, 0, 0, (*dtPtr));
@@ -318,10 +326,10 @@ void Game::UpdateModel()
 	std::for_each(threadList.begin(), threadList.end(), std::mem_fn(&std::thread::join));
 
 
-	for (int i = 0; i < currentAssignedObjects; i++)
-	{
-		numCalcs += (float)worldObjectsPtr->calcsCompleted[i];
-	}
+	//for (int i = 0; i < currentAssignedObjects; i++)
+	//{
+	//	numCalcs += (float)worldObjects.calcsCompleted[i];
+	//}
 
 
 
@@ -433,19 +441,22 @@ void Game::UpdateModel()
 
 void Game::ComposeFrame()
 {
+	
 	// Draw all objects
 
 	for (int i = 0; i < currentAssignedObjects; i++)
 	{
-		gfx.DrawCircle(Vec2((worldObjects.loc[i].x - cameraLoc.x) / (cameraZoomOut) + (float)(gfx.ScreenWidth / 2), -(worldObjects.loc[i].y - cameraLoc.y) / (cameraZoomOut) + (float)(gfx.ScreenHeight / 2)), worldObjects.radius[i] / (cameraZoomOut), worldObjects.color[i], 0.2f);
+		gfx.DrawCircle(Vec2((worldObjects.loc[i].x - cameraLoc.x) / (cameraZoomOut) + (float)(gfx.ScreenWidth / 2), -(worldObjects.loc[i].y - cameraLoc.y) / (cameraZoomOut) + (float)(gfx.ScreenHeight / 2)), worldObjects.radius[i] * 2.0f / (cameraZoomOut), worldObjects.color[i], 0.6f); //(cameraZoomOut) / 500.0f
 	}
+
+	
 
 
 	// Display number of active objects and MSEC PER FRAME, with other info. as needed
 
 	//RetroContent::DrawString(gfx, "NUMBER OF OBJECTS: " + std::to_string(currentAssignedObjects) , Vec2(200.0f, 20.0f), 2, Colors::Red);
 	//RetroContent::DrawString(gfx, "PERCENT OPTIMISED: " + std::to_string(100 - (int)(((float)numCalcs * 100) / ((float)currentAssignedObjects * (float)(currentAssignedObjects - 1)))), Vec2(200.0f, 60.0f), 2, Colors::Red); // (int)(numCalcs * 100) / (currentAssignedObjects * (currentAssignedObjects - 1))
-	//RetroContent::DrawString(gfx, "TOTAL MSEC PER FRAME: " + std::to_string(int(dt * 1000.0f)), Vec2(800.0f, 20.0f), 2, Colors::Yellow);
-	//RetroContent::DrawString(gfx, "CHECK MSEC PER FRAME: " + std::to_string(int(optimiseDt * 1000.0f)), Vec2(800.0f, 80.0f), 2, Colors::Yellow);
+	RetroContent::DrawString(gfx, "TOTAL MSEC PER FRAME: " + std::to_string(int(dt * 1000.0f)), Vec2(800.0f, 20.0f), 2, Colors::Yellow);
+	RetroContent::DrawString(gfx, "CHECK MSEC PER FRAME: " + std::to_string(int(optimiseDt * 1000.0f)), Vec2(800.0f, 80.0f), 2, Colors::Yellow);
 }
 
