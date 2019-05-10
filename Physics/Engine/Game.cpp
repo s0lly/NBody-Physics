@@ -64,11 +64,7 @@ void Game::Go()
 	gfx.EndFrame();
 
 	
-	end = std::chrono::system_clock::now();
-	std::chrono::duration<float> elapsedTime = end - start;
-	dt = elapsedTime.count();
 
-	start = std::chrono::system_clock::now(); // 500ms
 	
 
 	
@@ -111,8 +107,7 @@ void Game::UpdateModel()
 	tree.Refresh(worldObjects);
 
 
-	// Worldspace is the highest level space (equivalent to maxPlane). Each space has 4 qaudrants.
-	// set worldObjects to detailed plane nodes
+
 
 
 
@@ -147,7 +142,7 @@ void Game::UpdateModel()
 		worldObjects.oldVelocity[i] = worldObjects.velocity[i];
 	}
 
-	optimiseStart = std::chrono::system_clock::now(); // 145ms
+	
 	
 	// we will want to check the topmost quadrant first
 	int currentPlane = tree.numPlanes - 1;
@@ -178,9 +173,7 @@ void Game::UpdateModel()
 	std::for_each(threadList2.begin(), threadList2.end(), std::mem_fn(&std::thread::join));
 
 
-	optimiseEnd = std::chrono::system_clock::now();
-	std::chrono::duration<float> optimisedElapsedTime = optimiseEnd - optimiseStart;
-	optimiseDt = optimisedElapsedTime.count(); //dt = 1.0f;//
+	
 
 	//for (int i = 0; i < currentAssignedObjects; i++)
 	//{
@@ -196,36 +189,30 @@ void Game::UpdateModel()
 	}
 
 	
+	optimiseStart = std::chrono::system_clock::now(); // 145ms
+
 	// Merge objects that have collided
-	//if (currentAssignedObjects > 1)
-	//{
-	//	for (int i = 0; i < currentAssignedObjects - 1; i++)
-	//	{
-	//		for (int j = i + 1; j < currentAssignedObjects; j++)
-	//		{
-	//			if (CheckCollision(worldObjects[i], worldObjects[j]))
-	//			{
-	//				WorldObject worldObjectMerged= MergeObjectsAndReturnNew(worldObjects[i], worldObjects[j]);
-	//
-	//				std::swap(worldObjects[j], worldObjects[currentAssignedObjects - 1]);
-	//				currentAssignedObjects--;
-	//				j--;
-	//
-	//				std::swap(worldObjects[i], worldObjects[currentAssignedObjects - 1]);
-	//				currentAssignedObjects--;
-	//				i--;
-	//				j--;
-	//
-	//				worldObjects[currentAssignedObjects] = worldObjectMerged;
-	//
-	//				currentAssignedObjects++;
-	//
-	//				break;
-	//			}
-	//		}
-	//	}
-	//}
-	
+	if (worldObjects.currentAssignedObjects > 1)
+	{
+		for (int i = 0; i < worldObjects.currentAssignedObjects - 1; i++)
+		{
+			for (int j = i + 1; j < worldObjects.currentAssignedObjects; j++)
+			{
+				if (CheckCollision(worldObjects, i, j))
+				{
+					MergeObjects(&worldObjects, i, j);
+					j--;
+					i--;
+					j--;
+					break;
+				}
+			}
+		}
+	}
+
+	optimiseEnd = std::chrono::system_clock::now();
+	std::chrono::duration<float> optimisedElapsedTime = optimiseEnd - optimiseStart;
+	optimiseDt = optimisedElapsedTime.count(); //dt = 1.0f;//
 
 
 
@@ -302,17 +289,21 @@ void Game::ComposeFrame()
 
 	for (int i = 0; i < worldObjects.currentAssignedObjects; i++)
 	{
-		gfx.DrawCircle(Vec2((worldObjects.loc[i].x - cameraLoc.x) / (cameraZoomOut) + (float)(gfx.ScreenWidth / 2), -(worldObjects.loc[i].y - cameraLoc.y) / (cameraZoomOut) + (float)(gfx.ScreenHeight / 2)), worldObjects.radius[i] * 4.0f / (cameraZoomOut), worldObjects.color[i], 0.8f); //(cameraZoomOut) / 500.0f
+		gfx.DrawCircle(Vec2((worldObjects.loc[i].x - cameraLoc.x) / (cameraZoomOut) + (float)(gfx.ScreenWidth / 2), -(worldObjects.loc[i].y - cameraLoc.y) / (cameraZoomOut) + (float)(gfx.ScreenHeight / 2)), worldObjects.radius[i] * 8.0f / (cameraZoomOut), worldObjects.color[i], 1.0f); //(cameraZoomOut) / 500.0f   // * 4.0f
 	}
 
-	
+	end = std::chrono::system_clock::now();
+	std::chrono::duration<float> elapsedTime = end - start;
+	dt = elapsedTime.count();
+
+	start = std::chrono::system_clock::now(); // 500ms
 
 
 	// Display number of active objects and MSEC PER FRAME, with other info. as needed
 
-	//RetroContent::DrawString(gfx, "NUMBER OF OBJECTS: " + std::to_string(currentAssignedObjects) , Vec2(200.0f, 20.0f), 2, Colors::Red);
+	RetroContent::DrawString(gfx, "NUMBER OF OBJECTS: " + std::to_string(worldObjects.currentAssignedObjects) , Vec2(200.0f, 20.0f), 2, Colors::Red);
 	//RetroContent::DrawString(gfx, "PERCENT OPTIMISED: " + std::to_string(100 - (int)(((float)numCalcs * 100) / ((float)currentAssignedObjects * (float)(currentAssignedObjects - 1)))), Vec2(200.0f, 60.0f), 2, Colors::Red); // (int)(numCalcs * 100) / (currentAssignedObjects * (currentAssignedObjects - 1))
-	//RetroContent::DrawString(gfx, "TOTAL MSEC PER FRAME: " + std::to_string(int(dt * 1000.0f)), Vec2(800.0f, 20.0f), 2, Colors::Yellow);
-	//RetroContent::DrawString(gfx, "CHECK MSEC PER FRAME: " + std::to_string(int(optimiseDt * 1000.0f)), Vec2(800.0f, 80.0f), 2, Colors::Yellow);
+	RetroContent::DrawString(gfx, "TOTAL MSEC PER FRAME: " + std::to_string(int(dt * 1000.0f)), Vec2(800.0f, 20.0f), 2, Colors::Yellow);
+	RetroContent::DrawString(gfx, "CHECK MSEC PER FRAME: " + std::to_string(int(optimiseDt * 1000.0f)), Vec2(800.0f, 80.0f), 2, Colors::Yellow);
 }
 

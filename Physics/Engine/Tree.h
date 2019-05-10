@@ -28,6 +28,8 @@ struct Tree
 	float treeWidth;
 	float treeHeight;
 
+
+
 	void Init(int currentAssignedObjects)
 	{
 		topLeft = Vec2();
@@ -59,8 +61,13 @@ struct Tree
 		nodeObjectsContained = std::vector<std::vector<int>>(pow(4, numPlanes));
 	}
 
+
+
 	void Refresh(WorldObjects &worldObjects)
 	{
+		// Worldspace is the highest level space (equivalent to maxPlane). Each space has 4 qaudrants.
+		// set worldObjects to detailed plane nodes
+
 		topLeft = Vec2();
 		botRight = Vec2();
 
@@ -80,8 +87,6 @@ struct Tree
 		memset(nodeAveLoc, 0, sizeof(Vec2) * totalNodes);
 		memset(nodeTotalMass, 0, sizeof(float) * totalNodes);
 		nodeObjectsContained = std::vector<std::vector<int>>(pow(4, numPlanes));
-
-
 
 		auto worldObjectsPtr = &worldObjects;
 		auto treePtr = this;
@@ -139,7 +144,6 @@ struct Tree
 			}));
 		}
 		std::for_each(threadList.begin(), threadList.end(), std::mem_fn(&std::thread::join));
-
 
 
 
@@ -203,7 +207,7 @@ RecursivePlaneQuadrantCheckAndApplyGravity(WorldObjects *worldObjects, int maxWo
 							int targetWorldObject = (*nodeObjectsContained)[nodeLookup][t];
 							if (worldObjNum != targetWorldObject)
 							{
-								ApplyGravityToFirst(&worldObjects->loc[worldObjNum], &worldObjects->mass[worldObjNum], &worldObjects->velocity[worldObjNum], &worldObjects->calcsCompleted[worldObjNum],
+								ApplyGravityToFirst(&worldObjects->loc[worldObjNum], &worldObjects->mass[worldObjNum], &worldObjects->velocity[worldObjNum],
 									worldObjects->loc[targetWorldObject], worldObjects->mass[targetWorldObject], dt, false);
 							}
 						}
@@ -216,7 +220,7 @@ RecursivePlaneQuadrantCheckAndApplyGravity(WorldObjects *worldObjects, int maxWo
 				}
 				else
 				{
-					if (!ApplyGravityToFirst(&worldObjects->loc[worldObjNum], &worldObjects->mass[worldObjNum], &worldObjects->velocity[worldObjNum], &worldObjects->calcsCompleted[worldObjNum],
+					if (!ApplyGravityToFirst(&worldObjects->loc[worldObjNum], &worldObjects->mass[worldObjNum], &worldObjects->velocity[worldObjNum],
 						nodeAveLocs[nodeLookup], nodeTotalMasses[nodeLookup], dt, true))
 					{
 						if (!atLowestPlaneLevel)
@@ -229,7 +233,7 @@ RecursivePlaneQuadrantCheckAndApplyGravity(WorldObjects *worldObjects, int maxWo
 							for (int t = 0; t < (*nodeObjectsContained)[nodeLookup].size(); t++)
 							{
 								int targetWorldObject = (*nodeObjectsContained)[nodeLookup][t];
-								ApplyGravityToFirst(&worldObjects->loc[worldObjNum], &worldObjects->mass[worldObjNum], &worldObjects->velocity[worldObjNum], &worldObjects->calcsCompleted[worldObjNum],
+								ApplyGravityToFirst(&worldObjects->loc[worldObjNum], &worldObjects->mass[worldObjNum], &worldObjects->velocity[worldObjNum],
 									worldObjects->loc[targetWorldObject], worldObjects->mass[targetWorldObject], dt, false);
 							}
 						}
