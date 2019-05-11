@@ -60,8 +60,8 @@ struct WorldObjects
 			//locRand.x = locRand.x + (((float)(std::rand() % 5) - 2.0f) * ((float)sizeOfField / 2.0f)) * 8.0f;
 			//locRand.y = locRand.y + (((float)(std::rand() % 2) - 1.0f) * ((float)sizeOfField / 2.0f)) * 8.0f;
 
-			float magnitudeX = -(locRand.y) * 0.01f;
-			float magnitudeY = +(locRand.x) * 0.002f;
+			float magnitudeX = -(locRand.y) * 0.03f;
+			float magnitudeY = +(locRand.x) * 0.03f;
 
 			Vec2 startForce(magnitudeX, magnitudeY);
 
@@ -74,7 +74,7 @@ struct WorldObjects
 			velocity[currentAssignedObjects] = startForce;
 			mass[currentAssignedObjects] = massRand;
 			radius[currentAssignedObjects] = radiusRand;
-			color[currentAssignedObjects] = Colors::White;//Color(rRand, gRand, bRand);
+			color[currentAssignedObjects] = Color(rRand, gRand, bRand); //Colors::White;//
 
 			currentAssignedObjects++;
 		}

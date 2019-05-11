@@ -192,23 +192,23 @@ void Game::UpdateModel()
 	optimiseStart = std::chrono::system_clock::now(); // 145ms
 
 	// Merge objects that have collided
-	if (worldObjects.currentAssignedObjects > 1)
-	{
-		for (int i = 0; i < worldObjects.currentAssignedObjects - 1; i++)
-		{
-			for (int j = i + 1; j < worldObjects.currentAssignedObjects; j++)
-			{
-				if (CheckCollision(worldObjects, i, j))
-				{
-					MergeObjects(&worldObjects, i, j);
-					j--;
-					i--;
-					j--;
-					break;
-				}
-			}
-		}
-	}
+	//if (worldObjects.currentAssignedObjects > 1)
+	//{
+	//	for (int i = 0; i < worldObjects.currentAssignedObjects - 1; i++)
+	//	{
+	//		for (int j = i + 1; j < worldObjects.currentAssignedObjects; j++)
+	//		{
+	//			if (CheckCollision(worldObjects, i, j))
+	//			{
+	//				MergeObjects(&worldObjects, i, j);
+	//				j--;
+	//				i--;
+	//				j--;
+	//				break;
+	//			}
+	//		}
+	//	}
+	//}
 
 	optimiseEnd = std::chrono::system_clock::now();
 	std::chrono::duration<float> optimisedElapsedTime = optimiseEnd - optimiseStart;
@@ -289,7 +289,7 @@ void Game::ComposeFrame()
 
 	for (int i = 0; i < worldObjects.currentAssignedObjects; i++)
 	{
-		gfx.DrawCircle(Vec2((worldObjects.loc[i].x - cameraLoc.x) / (cameraZoomOut) + (float)(gfx.ScreenWidth / 2), -(worldObjects.loc[i].y - cameraLoc.y) / (cameraZoomOut) + (float)(gfx.ScreenHeight / 2)), worldObjects.radius[i] * 8.0f / (cameraZoomOut), worldObjects.color[i], 1.0f); //(cameraZoomOut) / 500.0f   // * 4.0f
+		gfx.DrawCircle(Vec2((worldObjects.loc[i].x - cameraLoc.x) / (cameraZoomOut)+(float)(gfx.ScreenWidth / 2), -(worldObjects.loc[i].y - cameraLoc.y) / (cameraZoomOut)+(float)(gfx.ScreenHeight / 2)), worldObjects.radius[i] * 2.0f / (cameraZoomOut), worldObjects.color[i], 0.8f); //(cameraZoomOut) / 500.0f
 	}
 
 	end = std::chrono::system_clock::now();

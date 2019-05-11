@@ -68,7 +68,7 @@ public:
 	void PutPixelWithAlphaBlend(int x, int y, Color c, float a)
 	{
 		Color existingColor = pSysBuffer[Graphics::ScreenWidth * y + x];
-		PutPixel(x, y, 
+		PutPixel(x, y,
 			{	(unsigned char)((255.0f - (float)existingColor.GetR()) * (a) * (float)c.GetR() / 255.0f + (float)existingColor.GetR()),
 				(unsigned char)((255.0f - (float)existingColor.GetG()) * (a) * (float)c.GetG() / 255.0f + (float)existingColor.GetG()),
 				(unsigned char)((255.0f - (float)existingColor.GetB()) * (a) * (float)c.GetB() / 255.0f + (float)existingColor.GetB()) });
@@ -88,7 +88,7 @@ public:
 		}
 	}
 
-	void DrawCircle (Vec2 loc, float radius, Color c, float alpha = 1.0f)
+	void DrawCircle(Vec2 loc, float radius, Color c, float alpha = 1.0f)
 	{
 		// Initial calculations ensure that only thevisible part of each circle is drawn
 
@@ -117,7 +117,7 @@ public:
 
 				if (distSqrdTotal < radiusSqrd)
 				{
-					PutPixelWithAlphaBlend(i, j, c, alpha * pow((1.0f - distSqrdTotal / radiusSqrd), 4.0f)); //  
+					PutPixelWithAlphaBlend(i, j, c, alpha * pow((radiusSqrd - distSqrdTotal) / radiusSqrd, 4.0f));
 				}
 			}
 		}
