@@ -52,13 +52,13 @@ struct Tree
 
 		for (int p = 0; p < numPlanes; p++)
 		{
-			totalNodes += pow(4, p);
+			totalNodes += int(pow(4, p));
 		}
 
 		nodeAveLoc = new Vec2[totalNodes]();
 		nodeTotalMass = new float[totalNodes]();
 		nodeObjectsContained.clear();
-		nodeObjectsContained = std::vector<std::vector<int>>(pow(4, numPlanes));
+		nodeObjectsContained = std::vector<std::vector<int>>(int(pow(4, numPlanes)));
 	}
 
 
@@ -86,14 +86,14 @@ struct Tree
 
 		memset(nodeAveLoc, 0, sizeof(Vec2) * totalNodes);
 		memset(nodeTotalMass, 0, sizeof(float) * totalNodes);
-		nodeObjectsContained = std::vector<std::vector<int>>(pow(4, numPlanes));
+		nodeObjectsContained = std::vector<std::vector<int>>(int(pow(4, numPlanes)));
 
 		auto worldObjectsPtr = &worldObjects;
 		auto treePtr = this;
 
 		int numThreads = 4;
 
-		int detailedNodeDim = pow(2, (numPlanes - 1));
+		int detailedNodeDim = int(pow(2, (numPlanes - 1)));
 		float treeNodeWidthInv = 1.0f / (treeWidth / (float)detailedNodeDim);
 		float treeNodeHeightInv = 1.0f / (treeHeight / (float)detailedNodeDim);
 
@@ -129,12 +129,12 @@ struct Tree
 
 						for (int p = 1; p < treePtr->numPlanes - 1; p++)
 						{
-							numOfPriorPlaneNodes += pow(4, (treePtr->numPlanes - p));
+							numOfPriorPlaneNodes += int(pow(4, (treePtr->numPlanes - p)));
 
 							currX /= 2;
 							currY /= 2;
 
-							int planeNode = numOfPriorPlaneNodes + currY * pow(2, (treePtr->numPlanes - p - 1)) + currX;
+							int planeNode = numOfPriorPlaneNodes + currY * int(pow(2, (treePtr->numPlanes - p - 1))) + currX;
 
 							treePtr->nodeAveLoc[planeNode] = treePtr->nodeAveLoc[planeNode] + locTimesMass;
 							treePtr->nodeTotalMass[planeNode] = treePtr->nodeTotalMass[planeNode] + worldObjectsPtr->mass[i];
@@ -168,23 +168,23 @@ RecursivePlaneQuadrantCheckAndApplyGravity(WorldObjects *worldObjects, int maxWo
 
 	for (int p = maxPlanes - priorPlane; p < maxPlanes; p++)
 	{
-		priorPlaneNodeStart += pow(4, p);
+		priorPlaneNodeStart += int(pow(4, p));
 	}
 	for (int p = maxPlanes - priorPlane + 1; p < maxPlanes; p++)
 	{
-		quadrantPlaneNodeStart += pow(4, p);
+		quadrantPlaneNodeStart += int(pow(4, p));
 	}
 
 	int newXStart = priorX * 2;
 	int newYStart = priorY * 2;
-	int newNodeDim = pow(2, maxPlanes - priorPlane);
+	int newNodeDim = int(pow(2, maxPlanes - priorPlane));
 
-	int worldObjNodeIDDim = pow(2, maxPlanes - 1);
+	int worldObjNodeIDDim = int(pow(2, maxPlanes - 1));
 	int worldObjNodeIDX = worldObjects->nodeID[worldObjNum] % worldObjNodeIDDim;
 	int worldObjNodeIDY = worldObjects->nodeID[worldObjNum] / worldObjNodeIDDim;
 
-	worldObjNodeIDX = worldObjNodeIDX / (pow(2, priorPlane - 1));
-	worldObjNodeIDY = worldObjNodeIDY / (pow(2, priorPlane - 1));
+	worldObjNodeIDX = worldObjNodeIDX / (int(pow(2, priorPlane - 1)));
+	worldObjNodeIDY = worldObjNodeIDY / (int(pow(2, priorPlane - 1)));
 
 	for (int y = newYStart; y < newYStart + 2; y++)
 	{
@@ -202,7 +202,7 @@ RecursivePlaneQuadrantCheckAndApplyGravity(WorldObjects *worldObjects, int maxWo
 				{
 					if (atLowestPlaneLevel)
 					{
-						for (int t = 0; t < (*nodeObjectsContained)[nodeLookup].size(); t++)
+						for (unsigned int t = 0; t < (*nodeObjectsContained)[nodeLookup].size(); t++)
 						{
 							int targetWorldObject = (*nodeObjectsContained)[nodeLookup][t];
 							if (worldObjNum != targetWorldObject)
@@ -230,7 +230,7 @@ RecursivePlaneQuadrantCheckAndApplyGravity(WorldObjects *worldObjects, int maxWo
 						}
 						else
 						{
-							for (int t = 0; t < (*nodeObjectsContained)[nodeLookup].size(); t++)
+							for (unsigned int t = 0; t < (*nodeObjectsContained)[nodeLookup].size(); t++)
 							{
 								int targetWorldObject = (*nodeObjectsContained)[nodeLookup][t];
 								ApplyGravityToFirst(&worldObjects->loc[worldObjNum], &worldObjects->mass[worldObjNum], &worldObjects->velocity[worldObjNum],
