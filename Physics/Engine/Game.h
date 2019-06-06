@@ -86,7 +86,7 @@ private:
 
 	WorldObjects worldObjects;
 
-	int numObjects = 250000;
+	int numObjects = 2500;
 
 	Tree tree;
 

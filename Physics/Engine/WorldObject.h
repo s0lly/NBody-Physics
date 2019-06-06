@@ -137,7 +137,7 @@ ApplyGravityToFirst(Vec2 *locFirst, float *massFirst, Vec2 *velocityFirst,
 			return true;
 		}
 	}
-
+	else return false;
 	
 }
 
